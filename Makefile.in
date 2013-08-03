@@ -50,6 +50,7 @@ HDRS = \
     SDL_bits.h \
 	SDL_blendmode.h \
 	SDL_clipboard.h \
+	SDL_compat.h \
 	SDL_cpuinfo.h \
 	SDL_endian.h \
 	SDL_error.h \
