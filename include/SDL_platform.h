@@ -141,6 +141,11 @@
 #undef __PSP__
 #define __PSP__ 1
 #endif
+#if defined(__PSL1GHT__)
+#undef __PSL1GHT__
+#define __PSL1GHT__  1
+#endif
+
 
 #include "begin_code.h"
 /* Set up for C function definitions, even when using C++ */

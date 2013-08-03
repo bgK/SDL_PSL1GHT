@@ -375,6 +375,9 @@ extern VideoBootStrap PSP_bootstrap;
 #if SDL_VIDEO_DRIVER_RPI
 extern VideoBootStrap RPI_bootstrap;
 #endif
+#if SDL_VIDEO_DRIVER_PSL1GHT
+extern VideoBootStrap PSL1GHT_bootstrap;
+#endif
 #if SDL_VIDEO_DRIVER_DUMMY
 extern VideoBootStrap DUMMY_bootstrap;
 #endif
@@ -390,6 +393,7 @@ extern SDL_VideoDisplay *SDL_GetDisplayForWindow(SDL_Window *window);
 extern void *SDL_GetDisplayDriverData( int displayIndex );
 
 extern int SDL_RecreateWindow(SDL_Window * window, Uint32 flags);
+extern void SDL_VideoQuitCompat(void);
 
 extern void SDL_OnWindowShown(SDL_Window * window);
 extern void SDL_OnWindowHidden(SDL_Window * window);

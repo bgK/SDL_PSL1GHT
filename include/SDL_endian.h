@@ -47,8 +47,8 @@
     defined(__m68k__) || defined(mc68000) || defined(_M_M68K) || \
     (defined(__MIPS__) && defined(__MISPEB__)) || \
     defined(__ppc__) || defined(__POWERPC__) || defined(_M_PPC) || \
-    defined(__sparc__)
-#define SDL_BYTEORDER   SDL_BIG_ENDIAN
+    defined(__PPC__) || defined(__powerpc__) || defined(__sparc__)
+#define SDL_BYTEORDER	SDL_BIG_ENDIAN
 #else
 #define SDL_BYTEORDER   SDL_LIL_ENDIAN
 #endif

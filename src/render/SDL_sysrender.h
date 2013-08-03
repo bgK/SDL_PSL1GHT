@@ -189,6 +189,9 @@ extern SDL_RenderDriver DirectFB_RenderDriver;
 #if SDL_VIDEO_RENDER_PSP
 extern SDL_RenderDriver PSP_RenderDriver;
 #endif
+#if SDL_VIDEO_RENDER_PSL1GHT
+extern SDL_RenderDriver PSL1GHT_RenderDriver;
+#endif
 extern SDL_RenderDriver SW_RenderDriver;
 
 #endif /* !SDL_RENDER_DISABLED */
