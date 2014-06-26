@@ -116,6 +116,11 @@ SDL_SYS_WaitThread(SDL_Thread * thread)
 	int t = sysThreadJoin(thread->handle, &retval);
 }
 
+void SDL_SYS_DetachThread(SDL_Thread *thread)
+{
+    sysThreadDetach(thread->handle);
+}
+
 int
 SDL_SYS_SetThreadPriority(SDL_ThreadPriority priority)
 {

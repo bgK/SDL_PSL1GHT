@@ -31,23 +31,38 @@
 
 static struct timeval start;
 
+static struct timeval start;
+static SDL_bool ticks_started = SDL_FALSE;
+
 void
-SDL_StartTicks(void)
+SDL_TicksInit(void)
 {
-    /* Set first ticks value */
+    if (ticks_started) {
+        return;
+    }
+    ticks_started = SDL_TRUE;
+
     gettimeofday(&start, NULL);
 }
 
-Uint32
-SDL_GetTicks(void)
+void
+SDL_TicksQuit(void)
 {
-    Uint32 ticks;
+    ticks_started = SDL_FALSE;
+}
+
+Uint32 SDL_GetTicks(void)
+{
+    if (!ticks_started) {
+        SDL_TicksInit();
+    }
+
     struct timeval now;
+    Uint32 ticks;
+
     gettimeofday(&now, NULL);
-    ticks =
-        (now.tv_sec - start.tv_sec) * 1000 + (now.tv_usec -
-                                              start.tv_usec) / 1000;
-    return (ticks);
+    ticks=(now.tv_sec-start.tv_sec)*1000+(now.tv_usec-start.tv_usec)/1000;
+    return(ticks);
 }
 
 void

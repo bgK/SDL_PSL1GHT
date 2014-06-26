@@ -3100,6 +3100,7 @@ AC_HELP_STRING([--enable-render-d3d], [enable the Direct3D render driver [[defau
             SOURCES="$SOURCES $srcdir/src/thread/psl1ght/*.c"
             SOURCES="$SOURCES $srcdir/src/thread/generic/SDL_sysmutex.c"
             SOURCES="$SOURCES $srcdir/src/thread/generic/SDL_syscond.c"
+            SOURCES="$SOURCES $srcdir/src/thread/generic/SDL_systls.c"
             have_threads=yes
         fi
         # Set up files for the joystick library
