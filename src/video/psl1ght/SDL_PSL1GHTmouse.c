@@ -80,11 +80,40 @@ void updateMouseButtons(_THIS, int mouseId, const mouseData *mouse) {
 }
 
 void updateMousePosition(_THIS, int mouseId, const mouseData *mouse) {
-    // There should only be one window
+    /* There should only be one window */
     SDL_Window *window = _this->windows;
+    SDL_Mouse *sdlMouse = SDL_GetMouse();
 
-    // Mouse movement is relative
-    SDL_SendMouseMotion(window, mouseId, 1, mouse->x_axis, mouse->y_axis);
+    /* Mouse movement is relative */
+    int xrel = mouse->x_axis;
+    int yrel = mouse->y_axis;
+
+    /* Make sure mouse position stays in the window while still sending the
+       event to ensure relative mouse event data is correct for the aplication.
+       Modifying last_x and last_y is a gross hack to workaround SDL code
+       limitations. */
+    int x_max = 0, y_max = 0;
+    SDL_GetWindowSize(window, &x_max, &y_max);
+    --x_max;
+    --y_max;
+
+    if (sdlMouse->last_x + xrel < 0) {
+        sdlMouse->last_x = 0 - xrel;
+    }
+
+    if (sdlMouse->last_y + yrel < 0) {
+        sdlMouse->last_y = 0 - yrel;
+    }
+
+    if (sdlMouse->last_x + xrel > x_max) {
+        sdlMouse->last_x = x_max - xrel;
+    }
+
+    if (sdlMouse->last_y + yrel > y_max) {
+        sdlMouse->last_y = y_max - yrel;
+    }
+
+    SDL_SendMouseMotion(window, mouseId, 1, xrel, yrel);
 }
 
 void updateMouseWheel(_THIS, int mouseId, const mouseData *mouse) {
