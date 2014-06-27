@@ -50,6 +50,7 @@
 /* Initialization/Query functions */
 static int PSL1GHT_VideoInit(_THIS);
 static void PSL1GHT_VideoQuit(_THIS);
+static int PSL1GHT_CreateWindow(_THIS, SDL_Window * window);
 
 /* PS3GUI init functions : */
 static void initializeGPU(SDL_DeviceData * devdata);
@@ -92,6 +93,7 @@ PSL1GHT_CreateDevice(int devindex)
     device->SetDisplayMode = PSL1GHT_SetDisplayMode;
     device->GetDisplayModes = PSL1GHT_GetDisplayModes;
     device->PumpEvents = PSL1GHT_PumpEvents;
+    device->CreateWindow = PSL1GHT_CreateWindow;
 
     device->free = PSL1GHT_DeleteDevice;
 
@@ -148,6 +150,25 @@ void initializeGPU( SDL_DeviceData * devdata)
     // Initilise Reality, which sets up the command buffer and shared IO memory
     devdata->_CommandBuffer = rsxInit(0x10000, 1024*1024, host_addr);
     assert(devdata->_CommandBuffer != NULL);
+}
+
+int
+PSL1GHT_CreateWindow(_THIS, SDL_Window * window)
+{
+    if (_this->windows != NULL && _this->windows->prev) {
+        return SDL_SetError("PS3 only supports one window");
+    }
+
+    window->flags &= ~SDL_WINDOW_RESIZABLE;     /* window is NEVER resizeable */
+    window->flags |= SDL_WINDOW_FULLSCREEN;     /* window is always fullscreen */
+    window->flags &= ~SDL_WINDOW_HIDDEN;
+    window->flags |= SDL_WINDOW_SHOWN;          /* only one window on PS3 */
+    window->flags |= SDL_WINDOW_INPUT_FOCUS;    /* always has input focus */
+
+    SDL_SetKeyboardFocus(window);
+    SDL_SetMouseFocus(window);
+
+    return 0;
 }
 
 /* vi: set ts=4 sw=4 expandtab: */
