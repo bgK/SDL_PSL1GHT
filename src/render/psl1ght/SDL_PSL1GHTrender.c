@@ -646,6 +646,11 @@ PSL1GHT_DestroyTexture(SDL_Renderer * renderer, SDL_Texture * texture)
 {
     SDL_Surface *surface = (SDL_Surface *) texture->driverdata;
 
+    if (!surface) {
+    	// Native texture wrappers don't have driverdata
+        return;
+    }
+
     // TODO: Wait for the DMA transfer to complete
     rsxFree(surface->pixels);
     SDL_FreeSurface(surface);
