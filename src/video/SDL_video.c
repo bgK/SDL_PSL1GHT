@@ -2343,8 +2343,6 @@ SDL_VideoQuit(void)
         return;
     }
 
-    SDL_VideoQuitCompat();
-
     /* Halt event processing before doing anything else */
     SDL_TouchQuit();
     SDL_MouseQuit();

@@ -21,7 +21,6 @@
 #include "../SDL_internal.h"
 
 #include "SDL_video.h"
-#include "SDL_compat.h"
 #include "SDL_sysvideo.h"
 #include "SDL_blit.h"
 #include "SDL_RLEaccel_c.h"
@@ -210,13 +209,6 @@ SDL_SetColorKey(SDL_Surface * surface, int flag, Uint32 key)
     }
     if (surface->map->info.flags != flags) {
         SDL_InvalidateMap(surface->map);
-    }
-
-    /* Compatibility mode */
-    if (surface->map->info.flags & SDL_COPY_COLORKEY) {
-        surface->flags |= SDL_SRCCOLORKEY;
-    } else {
-        surface->flags &= ~SDL_SRCCOLORKEY;
     }
 
     return 0;
@@ -423,13 +415,6 @@ SDL_SetSurfaceBlendMode(SDL_Surface * surface, SDL_BlendMode blendMode)
 
     if (surface->map->info.flags != flags) {
         SDL_InvalidateMap(surface->map);
-    }
-
-    /* Compatibility mode */
-    if (surface->map->info.flags & SDL_COPY_BLEND) {
-        surface->flags |= SDL_SRCALPHA;
-    } else {
-        surface->flags &= ~SDL_SRCALPHA;
     }
 
     return status;
