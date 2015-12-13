@@ -83,10 +83,10 @@ SDL_RenderDriver PSL1GHT_RenderDriver = {
 
 typedef struct
 {
-    bool first_fb; // Is this the first flip ?
+    SDL_bool flip_in_progress; // Is the system switching buffers?
     int current_screen;
-    SDL_Surface *screens[3];
-    void *textures[3];
+    SDL_Surface *screens[2];
+    void *textures[2];
     gcmContextData *context; // Context to keep track of the RSX buffer.
 } PSL1GHT_RenderData;
 
@@ -98,9 +98,16 @@ static void waitFlip()
 }
 
 static SDL_Surface *
-PSL1GHT_ActivateRenderer(SDL_Renderer * renderer)
+PSL1GHT_GetBackBuffer(SDL_Renderer * renderer)
 {
     PSL1GHT_RenderData *data = (PSL1GHT_RenderData *) renderer->driverdata;
+
+    if (data->flip_in_progress) {
+        // Wait for the flip operation to complete before drawing
+        // to the back buffer
+        waitFlip();
+        data->flip_in_progress = SDL_FALSE;
+    }
 
     return data->screens[data->current_screen];
 }
@@ -143,13 +150,12 @@ PSL1GHT_CreateRenderer(SDL_Window * window, Uint32 flags)
     // Get a copy of the command buffer
     data->context = ((SDL_DeviceData*) display->device->driverdata)->_CommandBuffer;
     data->current_screen = 0;
-    data->first_fb = true;
+    data->flip_in_progress = SDL_FALSE;
     
     pitch = displayMode->w * SDL_BYTESPERPIXEL(displayMode->format);
     
-    n = 2;
     deprintf (1, "\tCreate the %d screen(s):\n", n);
-    for (i = 0; i < n; ++i) {
+    for (i = 0; i < SDL_arraysize(data->screens); ++i) {
         deprintf (1,  "\t\tAllocate RSX memory for pixels\n");
         /* Allocate RSX memory for pixels */
         data->textures[i] = rsxMemalign(64, displayMode->h * pitch);
@@ -214,7 +220,6 @@ PSL1GHT_CreateRenderer(SDL_Window * window, Uint32 flags)
     renderer->driverdata = data;
 
     PSL1GHT_UpdateViewport(renderer);
-    PSL1GHT_ActivateRenderer(renderer);
     
     return renderer;
 }
@@ -349,7 +354,7 @@ PSL1GHT_UpdateViewport(SDL_Renderer * renderer)
 static int
 PSL1GHT_RenderClear(SDL_Renderer * renderer)
 {
-    SDL_Surface *surface = PSL1GHT_ActivateRenderer(renderer);
+    SDL_Surface *surface = PSL1GHT_GetBackBuffer(renderer);
     Uint32 color;
     SDL_Rect clip_rect;
 
@@ -372,7 +377,7 @@ static int
 PSL1GHT_RenderDrawPoints(SDL_Renderer * renderer, const SDL_FPoint * points,
                     int count)
 {
-    SDL_Surface *surface = PSL1GHT_ActivateRenderer(renderer);
+    SDL_Surface *surface = PSL1GHT_GetBackBuffer(renderer);
     SDL_Point *final_points;
     int i, status;
 
@@ -422,7 +427,7 @@ static int
 PSL1GHT_RenderDrawLines(SDL_Renderer * renderer, const SDL_FPoint * points,
                    int count)
 {
-    SDL_Surface *surface = PSL1GHT_ActivateRenderer(renderer);
+    SDL_Surface *surface = PSL1GHT_GetBackBuffer(renderer);
     SDL_Point *final_points;
     int i, status;
 
@@ -471,7 +476,7 @@ PSL1GHT_RenderDrawLines(SDL_Renderer * renderer, const SDL_FPoint * points,
 static int
 PSL1GHT_RenderFillRects(SDL_Renderer * renderer, const SDL_FRect * rects, int count)
 {
-    SDL_Surface *surface = PSL1GHT_ActivateRenderer(renderer);
+    SDL_Surface *surface = PSL1GHT_GetBackBuffer(renderer);
     SDL_Rect *final_rects;
     int i, status;
 
@@ -524,7 +529,7 @@ PSL1GHT_RenderCopy(SDL_Renderer * renderer, SDL_Texture * texture,
               const SDL_Rect * srcrect, const SDL_FRect * dstrect)
 {
     PSL1GHT_RenderData *data = (PSL1GHT_RenderData *) renderer->driverdata;
-    SDL_Surface *dst = PSL1GHT_ActivateRenderer(renderer);
+    SDL_Surface *dst = PSL1GHT_GetBackBuffer(renderer);
     SDL_Surface *src = (SDL_Surface *) texture->driverdata;
     SDL_Rect final_rect;
     u32 src_offset, dst_offset;
@@ -587,7 +592,7 @@ static int
 PSL1GHT_RenderReadPixels(SDL_Renderer * renderer, const SDL_Rect * rect,
                     Uint32 format, void * pixels, int pitch)
 {
-    SDL_Surface *surface = PSL1GHT_ActivateRenderer(renderer);
+    SDL_Surface *surface = PSL1GHT_GetBackBuffer(renderer);
     Uint32 src_format;
     void *src_pixels;
     SDL_Rect final_rect;
@@ -625,20 +630,17 @@ PSL1GHT_RenderPresent(SDL_Renderer * renderer)
 {
     PSL1GHT_RenderData *data = (PSL1GHT_RenderData *) renderer->driverdata;
 
-    if (!data->first_fb)
-        waitFlip();
-    else
-        gcmResetFlipStatus();
+    // Wait for the previous flip to complete if needed
+    PSL1GHT_GetBackBuffer(renderer);
 
     gcmSetFlip(data->context, data->current_screen);
     rsxFlushBuffer(data->context);
-
     gcmSetWaitFlip(data->context);
 
-    data->first_fb = false;
+    data->flip_in_progress = SDL_TRUE;
 
     // Update the flipping chain, if any
-    data->current_screen = (data->current_screen + 1) % 2;
+    data->current_screen = (data->current_screen + 1) % SDL_arraysize(data->screens);
 }
 
 static void

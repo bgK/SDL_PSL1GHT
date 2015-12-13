@@ -60,7 +60,7 @@ PSL1GHT_InitModes(_THIS)
     modedata->vconfig.pitch = res.width * 4;
     mode.driverdata = modedata;
 
-    /* Setup the display to it's  default mode */
+    /* Setup the display to its  default mode */
     assert(videoConfigure(0, &modedata->vconfig, NULL, 1) == 0);
 
 	// Wait until RSX is ready
