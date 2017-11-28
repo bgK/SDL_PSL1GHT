@@ -49,11 +49,15 @@ static void eventHandle(u64 status, u64 param, void * userdata) {
 	    if (window) {
 	        SDL_SendWindowEvent(window, SDL_WINDOWEVENT_LEAVE, 0, 0);
 	    }
+	    SDL_SendAppEvent(SDL_APP_WILLENTERBACKGROUND);
+	    SDL_SendAppEvent(SDL_APP_DIDENTERBACKGROUND);
     } else if(status == SYSUTIL_MENU_CLOSE) {
 		// XMB closed
 	    if (window) {
 	        SDL_SendWindowEvent(window, SDL_WINDOWEVENT_ENTER, 0, 0);
 	    }
+	    SDL_SendAppEvent(SDL_APP_WILLENTERFOREGROUND);
+	    SDL_SendAppEvent(SDL_APP_DIDENTERFOREGROUND);   
     } else if(status == SYSUTIL_DRAW_BEGIN) {
     } else if(status == SYSUTIL_DRAW_END) {
     } else {
