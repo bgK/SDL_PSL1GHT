@@ -44,21 +44,22 @@
 #include <intrin.h>
 #else
 #ifdef __ALTIVEC__
-#if HAVE_ALTIVEC_H && !defined(__APPLE_ALTIVEC__)
+#if HAVE_ALTIVEC_H && !defined(__APPLE_ALTIVEC__) && !defined(SDL_DISABLE_ALTIVEC_H)
 #include <altivec.h>
 #undef pixel
+#undef bool
 #endif
 #endif
-#ifdef __MMX__
-#include <mmintrin.h>
-#endif
-#ifdef __3dNOW__
+#if defined(__3dNOW__) && !defined(SDL_DISABLE_MM3DNOW_H)
 #include <mm3dnow.h>
 #endif
-#ifdef __SSE__
+#if defined(__MMX__) && !defined(SDL_DISABLE_MMINTRIN_H)
+#include <mmintrin.h>
+#endif
+#if defined(__SSE__) && !defined(SDL_DISABLE_XMMINTRIN_H)
 #include <xmmintrin.h>
 #endif
-#ifdef __SSE2__
+#if defined(__SSE2__) && !defined(SDL_DISABLE_EMMINTRIN_H)
 #include <emmintrin.h>
 #endif
 #endif
