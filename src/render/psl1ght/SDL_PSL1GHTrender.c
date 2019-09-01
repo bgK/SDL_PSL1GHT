@@ -22,6 +22,7 @@
 
 #if SDL_VIDEO_RENDER_PSL1GHT
 
+#include "SDL_hints.h"
 #include "../SDL_sysrender.h"
 #include "../../video/SDL_sysvideo.h"
 #include "../../video/psl1ght/SDL_PSL1GHTvideo.h"
@@ -524,6 +525,18 @@ PSL1GHT_RenderFillRects(SDL_Renderer * renderer, const SDL_FRect * rects, int co
     return status;
 }
 
+static Uint8
+GetScaleQuality(void)
+{
+    const char *hint = SDL_GetHint(SDL_HINT_RENDER_SCALE_QUALITY);
+
+    if (!hint || *hint == '0' || SDL_strcasecmp(hint, "nearest") == 0) {
+        return GCM_TRANSFER_INTERPOLATOR_NEAREST;
+    } else {
+        return GCM_TRANSFER_INTERPOLATOR_LINEAR;
+    }
+}
+
 static int
 PSL1GHT_RenderCopy(SDL_Renderer * renderer, SDL_Texture * texture,
               const SDL_Rect * srcrect, const SDL_FRect * dstrect)
@@ -572,7 +585,7 @@ PSL1GHT_RenderCopy(SDL_Renderer * renderer, SDL_Texture * texture,
     scale.offset = src_offset;
     scale.pitch = src->pitch;
     scale.origin = GCM_TRANSFER_ORIGIN_CORNER;
-    scale.interp = GCM_TRANSFER_INTERPOLATOR_NEAREST;
+    scale.interp = GetScaleQuality();
 
     gcmTransferSurface surface;
     surface.format = GCM_TRANSFER_SURFACE_FORMAT_A8R8G8B8;

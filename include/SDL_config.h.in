@@ -84,10 +84,12 @@
 #undef HAVE_FREE
 #undef HAVE_ALLOCA
 #ifndef __WIN32__ /* Don't use C runtime versions of these on Windows */
+#ifndef __PSL1GHT__ /* getenv returns an empty string for non-existing vars; don't use it */
 #undef HAVE_GETENV
 #undef HAVE_SETENV
 #undef HAVE_PUTENV
 #undef HAVE_UNSETENV
+#endif
 #endif
 #undef HAVE_QSORT
 #undef HAVE_ABS
