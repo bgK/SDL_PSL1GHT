@@ -612,10 +612,10 @@ PSL1GHT_RenderCopy(SDL_Renderer * renderer, SDL_Texture * texture,
     scale.conversion = GCM_TRANSFER_CONVERSION_TRUNCATE;
     scale.format = GCM_TRANSFER_SCALE_FORMAT_A8R8G8B8;
     scale.operation = GCM_TRANSFER_OPERATION_SRCCOPY;
-    scale.clipX = final_rect.x;
-    scale.clipY = final_rect.y;
-    scale.clipW = final_rect.w;
-    scale.clipH = final_rect.h;
+    scale.clipX = SDL_max(final_rect.x, 0);
+    scale.clipY = SDL_max(final_rect.y, 0);
+    scale.clipW = SDL_min(final_rect.w, renderer->viewport.x + renderer->viewport.w - final_rect.x);
+    scale.clipH = SDL_min(final_rect.h, renderer->viewport.y + renderer->viewport.h - final_rect.y);
     scale.outX = final_rect.x;
     scale.outY = final_rect.y;
     scale.outW = final_rect.w;
