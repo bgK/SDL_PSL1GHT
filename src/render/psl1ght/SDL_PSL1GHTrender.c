@@ -69,7 +69,7 @@ static int PSL1GHT_RenderReadPixels(SDL_Renderer * renderer, const SDL_Rect * re
 static void PSL1GHT_RenderPresent(SDL_Renderer * renderer);
 static void PSL1GHT_DestroyTexture(SDL_Renderer * renderer, SDL_Texture * texture);
 static void PSL1GHT_DestroyRenderer(SDL_Renderer * renderer);
-
+static void PSL1GHT_SetScreenRenderTarget(SDL_Renderer * renderer, u32 index);
 
 SDL_RenderDriver PSL1GHT_RenderDriver = {
     PSL1GHT_CreateRenderer,
@@ -89,6 +89,7 @@ typedef struct
     SDL_Surface *screens[2];
     void *textures[2];
     gcmContextData *context; // Context to keep track of the RSX buffer.
+    void *depth_buffer;
 } PSL1GHT_RenderData;
 
 static void waitFlip()
@@ -144,8 +145,6 @@ PSL1GHT_CreateRenderer(SDL_Window * window, Uint32 flags)
         return NULL;
     }
     
-    SDL_zerop(data);
-    
     deprintf (1, "\tMem allocated\n");
     
     // Get a copy of the command buffer
@@ -198,6 +197,8 @@ PSL1GHT_CreateRenderer(SDL_Window * window, Uint32 flags)
         }
     }
 
+    data->depth_buffer = rsxMemalign(64, displayMode->h * displayMode->w * 4);
+
     deprintf (1,  "\tFinished\n");
 
     renderer->CreateTexture = PSL1GHT_CreateTexture;
@@ -220,6 +221,7 @@ PSL1GHT_CreateRenderer(SDL_Window * window, Uint32 flags)
     renderer->info = PSL1GHT_RenderDriver.info;
     renderer->driverdata = data;
 
+    PSL1GHT_SetScreenRenderTarget(renderer, data->current_screen);
     PSL1GHT_UpdateViewport(renderer);
     
     return renderer;
@@ -352,12 +354,54 @@ PSL1GHT_UpdateViewport(SDL_Renderer * renderer)
     return 0;
 }
 
+static void
+PSL1GHT_SetScreenRenderTarget(SDL_Renderer * renderer, u32 index)
+{
+    PSL1GHT_RenderData *data = (PSL1GHT_RenderData *) renderer->driverdata;
+    u32 offset = 0, depth_offset = 0;
+    gcmSurface sf;
+
+    rsxAddressToOffset(data->screens[index]->pixels, &offset);
+    rsxAddressToOffset(data->depth_buffer, &depth_offset);
+
+    sf.colorFormat		= GCM_TF_COLOR_X8R8G8B8;
+    sf.colorTarget		= GCM_TF_TARGET_0;
+    sf.colorLocation[0]	= GCM_LOCATION_RSX;
+    sf.colorOffset[0]	= offset;
+    sf.colorPitch[0]	= data->screens[index]->pitch;
+
+    sf.colorLocation[1]	= GCM_LOCATION_RSX;
+    sf.colorLocation[2]	= GCM_LOCATION_RSX;
+    sf.colorLocation[3]	= GCM_LOCATION_RSX;
+    sf.colorOffset[1]	= 0;
+    sf.colorOffset[2]	= 0;
+    sf.colorOffset[3]	= 0;
+    sf.colorPitch[1]	= 64;
+    sf.colorPitch[2]	= 64;
+    sf.colorPitch[3]	= 64;
+
+    sf.depthFormat		= GCM_TF_ZETA_Z16;
+    sf.depthLocation	= GCM_LOCATION_RSX;
+    sf.depthOffset		= depth_offset;
+    sf.depthPitch		= data->screens[index]->w * 4;
+
+    sf.type				= GCM_TF_TYPE_LINEAR;
+    sf.antiAlias		= GCM_TF_CENTER_1;
+
+    sf.width			= data->screens[index]->w;
+    sf.height			= data->screens[index]->h;
+    sf.x				= 0;
+    sf.y				= 0;
+
+    rsxSetSurface(data->context, &sf);
+}
+
 static int
 PSL1GHT_RenderClear(SDL_Renderer * renderer)
 {
+    PSL1GHT_RenderData *data = (PSL1GHT_RenderData *) renderer->driverdata;
     SDL_Surface *surface = PSL1GHT_GetBackBuffer(renderer);
     Uint32 color;
-    SDL_Rect clip_rect;
 
     if (!surface) {
         return -1;
@@ -366,11 +410,11 @@ PSL1GHT_RenderClear(SDL_Renderer * renderer)
     color = SDL_MapRGBA(surface->format,
                         renderer->r, renderer->g, renderer->b, renderer->a);
 
-    /* By definition the clear ignores the clip rect */
-    clip_rect = surface->clip_rect;
-    SDL_SetClipRect(surface, NULL);
-    SDL_FillRect(surface, NULL, color);
-    SDL_SetClipRect(surface, &clip_rect);
+    rsxSetClearColor(data->context, color);
+    rsxClearSurface(data->context, GCM_CLEAR_R |
+                                   GCM_CLEAR_G |
+                                   GCM_CLEAR_B |
+                                   GCM_CLEAR_A);
     return 0;
 }
 
@@ -654,6 +698,8 @@ PSL1GHT_RenderPresent(SDL_Renderer * renderer)
 
     // Update the flipping chain, if any
     data->current_screen = (data->current_screen + 1) % SDL_arraysize(data->screens);
+
+    PSL1GHT_SetScreenRenderTarget(renderer, data->current_screen);
 }
 
 static void
@@ -688,6 +734,9 @@ PSL1GHT_DestroyRenderer(SDL_Renderer * renderer)
                 rsxFree(data->textures[i]);
             }
         }
+
+        rsxFree(data->depth_buffer);
+
         SDL_free(data);
     }
     SDL_free(renderer);
