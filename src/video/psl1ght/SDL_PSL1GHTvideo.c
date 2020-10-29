@@ -111,11 +111,11 @@ PSL1GHT_VideoInit(_THIS)
     SDL_DeviceData *devdata = NULL;
 
     devdata = (SDL_DeviceData*) SDL_calloc(1, sizeof(SDL_DeviceData));
-    if (devdata == NULL) { 
-        /* memory allocation problem */  
+    if (devdata == NULL) {
+        /* memory allocation problem */
         SDL_OutOfMemory();
         return -1;
-    } 
+    }
 
     _this->driverdata = devdata;
 
@@ -148,7 +148,7 @@ void initializeGPU( SDL_DeviceData * devdata)
     assert(host_addr != NULL);
 
     // Initilise Reality, which sets up the command buffer and shared IO memory
-    devdata->_CommandBuffer = rsxInit(0x10000, 1024*1024, host_addr);
+    rsxInit(&devdata->_CommandBuffer, 0x10000, 1024*1024, host_addr);
     assert(devdata->_CommandBuffer != NULL);
 }
 
