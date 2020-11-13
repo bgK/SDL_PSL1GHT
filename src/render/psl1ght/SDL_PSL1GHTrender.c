@@ -385,8 +385,8 @@ PSL1GHT_SetScreenRenderTarget(SDL_Renderer * renderer, u32 index)
     sf.depthOffset		= depth_offset;
     sf.depthPitch		= data->screens[index]->w * 4;
 
-    sf.type				= 1 /*GCM_TF_TYPE_LINEAR*/;
-    sf.antiAlias		= 0 /*GCM_TF_CENTER_1*/;
+    sf.type				= GCM_TEXTURE_LINEAR;
+    sf.antiAlias		= GCM_SURFACE_CENTER_1;
 
     sf.width			= data->screens[index]->w;
     sf.height			= data->screens[index]->h;
