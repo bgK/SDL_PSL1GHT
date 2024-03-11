@@ -364,8 +364,8 @@ PSL1GHT_SetScreenRenderTarget(SDL_Renderer * renderer, u32 index)
     rsxAddressToOffset(data->screens[index]->pixels, &offset);
     rsxAddressToOffset(data->depth_buffer, &depth_offset);
 
-    sf.colorFormat		= GCM_TF_COLOR_X8R8G8B8;
-    sf.colorTarget		= GCM_TF_TARGET_0;
+    sf.colorFormat		= GCM_SURFACE_X8R8G8B8;
+    sf.colorTarget		= GCM_SURFACE_TARGET_0;
     sf.colorLocation[0]	= GCM_LOCATION_RSX;
     sf.colorOffset[0]	= offset;
     sf.colorPitch[0]	= data->screens[index]->pitch;
@@ -380,13 +380,13 @@ PSL1GHT_SetScreenRenderTarget(SDL_Renderer * renderer, u32 index)
     sf.colorPitch[2]	= 64;
     sf.colorPitch[3]	= 64;
 
-    sf.depthFormat		= GCM_TF_ZETA_Z16;
+    sf.depthFormat		= GCM_SURFACE_ZETA_Z16;
     sf.depthLocation	= GCM_LOCATION_RSX;
     sf.depthOffset		= depth_offset;
     sf.depthPitch		= data->screens[index]->w * 4;
 
-    sf.type				= GCM_TF_TYPE_LINEAR;
-    sf.antiAlias		= GCM_TF_CENTER_1;
+    sf.type				= GCM_TEXTURE_LINEAR;
+    sf.antiAlias		= GCM_SURFACE_CENTER_1;
 
     sf.width			= data->screens[index]->w;
     sf.height			= data->screens[index]->h;
